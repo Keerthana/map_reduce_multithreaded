@@ -1,0 +1,53 @@
+The map reduce algorithm has few performance bottlenecks. The
+following are the ways to solve the performance issue.
+
+1) It is difficult for the reducer tasks to keep track of the count of
+every key in memory. This would increase the memory requirements of
+the reducer tasks. We could overcome this by sorting the Mapper task's
+output stream which spills intermediate state to disk efficiently.
+
+2) While sorting each Mapper task, we can sum the values with the same
+key to reduce the amount of data it needs to send to the reducer. This
+method is called combiner. Hence, the reducer tasks would only require
+to sum the values with same key from different Mapper tasks.
+
+3) The performace could also be varied by changing the number of
+additional reducers. Performance degrades with more number of
+reducers. This behavious is similar to increasing the number of
+uProcessors. Increasing ftom 1 processor to 2 increases the speed of
+execution tremendously. However, as the number of processors keep
+increasing, the performance only decreases.
+
+Synchronization related problems that limit the performance are:
+
+We use Semaphores and locks to handle synchronization and mutual
+exclusion. Though they have many benefits in shared memory access,
+they also have certain disadvantages as follows.
+
+1) Mappers and Reducers lock the buffer while adding or removing a
+key-value pair. This limits the performance. Whereas it would be
+faster for both to occur at the same time. However, this could be
+problematic too if the buffer is empty or full or when the Reducer is
+trying to remove the key-value pair that is being added
+
+2)There could be times when certain tasks wait for longer than other
+tasks.  For example, the Mapper may have key-value but it must wait 
+till all the Reducer tasks complete. This could lead to longer waiting times 
+for the Mapper task. Similarly, for the Reducer tasks which could lower the
+performance as there are idle threads just sitting in the ready state.
+
+3) There is also a problem when more than 1 thread tries running the functions 
+P() and V() on the semaphore at the same time. There is busy waiting which
+wastes CPU cycles and thereby lowering the performance. Spinlock is very 
+bad in terms of performances.
+
+4) Deadlock could occur if the locks are not used properly
+
+Changes to improve performance:
+1) To overcome the busy wait problem, we need to place the appropriate
+threads which busy wait on the waiting queue.
+
+2) There should be a mechanism to handle waiting threads by pushing 
+it to the ready queue. 
+
+3) We can avoid deadlocks by careful implementation of locks

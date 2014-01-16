@@ -1,0 +1,131 @@
+TEST DOCUMENTATION =========================  
+
+The program is used to perform word-count program as a Map Reduce job. Map Reduce consists of one or more Mapper and Reduce tasks. A Mapper task reads from input source and outputs a stream of "word:1"(key-value) pairs. The Reduce task partitions the key-space, and sums up the value of all key-value pairs with the same key. Upon completion, each Reduce taks prints out the frequency of each work in its partition. 
+
+
+USER INTERFACE TESTING
+    There is no user interface to be tested, so the testing focuses
+    solely on the algorithm used.
+
+ALGORITHM TESTING
+
+  TEST 1: (DEFAULT CASE)
+  -------
+    DATA DESCRIPTION:
+
+    Input file:
+
+    cs343 queue semaphore
+    queue list map reduce
+    assignment list queue    
+
+    Output:
+
+    cs343 : 1
+    list : 2
+    reduce : 1
+    semaphore : 1
+    map : 1
+    assignment : 1
+    queue : 3
+    Finished! Semaphore counter: 4
+
+    The Input/ is the directory which contains the input file. By default the program considers the num-reducers = 4, queue-length = 16, sort-buffer-size = 0. We first create 1 Mapper since there is only 1 input file and 4 reducers which is by default. The mapper creates a key value pair with each word as key and 1 as value "word:1" and these key value pairs are given to the queue. The reducer runs concurrently and takes each key from the queue using a hash function which is given. The hash function decides which reducer to assign the key value pair. The reducer later adds value for each key and outputs them as shown in the output.
+
+ 
+    TESTING
+    Here is the script-fixed log of the testing performed.
+
+    kdvijaya@linux028:~/cs343/a3$ ./wordcount Input/ 
+    cs343 : 1
+    list : 2
+    reduce : 1
+    semaphore : 1
+    map : 1
+    assignment : 1
+    queue : 3
+    Finished! Semaphore counter: 4
+    
+
+    ANALYSIS
+    The results from running the program with 1 input file players show that:
+    1) There was 1 Mapper created which creates key-value pairs.
+
+    2) The queue stores the key-value pairs given by the mapper. If the queue is empty, the reducer cannot access the queue, so it waits. Similarly, if the queue is full, the Mapper can't add key-value pairs.
+
+    3) The reducer uses a hash function to determine which key-value pairs go to corresponding reducers (in this case there are 4 reducers). 
+
+    4) The reducer sums up the value of each key and returns the output.
+
+    From this we can say that the basic default  condition has been exercised, and the basic algorithm has been shown to be correct.
+
+TEST 2: (Sort-buffer-size > 0)
+  -------
+    
+    TESTING
+    Here is the script-fixed log for testing the case where the sort-buffer=size is greater than zero.
+
+    kdvijaya@linux032:~/cs343/a3$ ./wordcount Input/ 4 16 2
+    assignment : 1
+    cs343 : 1
+    list : 2
+    map : 1
+    queue : 3
+    reduce : 1
+    semaphore : 1
+    Finished! Semaphore counter: 4
+    
+
+    ANALYSIS
+    The results from running the program with 1 input file players show that:
+
+    It is similar to the previous test case except that now the sort-buffer-size has been changed to 2.So, instead of executing the Mapper and Reducer tasks, the program runs the SortMapper and SortReducer tasks which perform the same function as Mapper and Reducer but only it sorts the key-value pairs alphabetically as shown in the output.
+
+TEST 3: (empty file)
+-------
+
+TESTING:
+Here is the script-fixed log for testing empty file.
+
+kdvijaya@linux032:~/cs343/a3$ ./wordcount Input/ 4 16 0
+Finished! Semaphore counter: 0
+
+ANALYSIS:
+It creates no key-value pairs. And ouputs nothing.
+
+TEST 4: (Many Input files)
+------
+
+TESTING:
+Here is the script-fixed log for testing many input files
+
+input1.txt:
+cs343 queue semaphore
+queue list map reduce
+assignment list queue
+
+input2.txt
+Apple cs343 list
+Banana Orange map
+queue Apple list
+
+kdvijaya@linux032:~/cs343/a3$ ./wordcount Input/ 4 16 0
+Apple : 2
+map : 1
+Carrot : 2
+Potato : 1
+Orange : 2
+Pear : 1
+cs343 : 1
+list : 2
+reduce : 1
+semaphore : 1
+Banana : 1
+assignment : 1
+queue : 3
+Finished! Semaphore counter: 0
+
+ANALYSIS:
+Similar behaviour as seen in case 1 but with more than 1 input file. Here there are 2 input files, hence 2 mapper tasks would be created and a similar behaviour is expected.
+
+From this we can say that the every condition has been exercised, and the basic algorithm has been shown to be correct.
